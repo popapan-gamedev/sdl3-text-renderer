@@ -1,4 +1,4 @@
-.vs/
-Debug/
-x64/
+/.vs
+/x64
+/sdl3-text-renderer/x64
 *.user
