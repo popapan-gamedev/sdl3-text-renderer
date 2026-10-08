@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="sdl3-text-renderer/sdl3-text-renderer.vcxproj" Id="b5b40e9b-2776-4754-a910-d618c1eb721e" />
-</Solution>
