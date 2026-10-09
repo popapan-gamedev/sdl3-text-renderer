@@ -32,6 +32,8 @@ SDL_AppResult SDL_AppInit(
 			app_identifier
 	);
 
+	// <Initialise subsystems.>
+	// 
 	bool sdl_success = SDL_Init(init_flags);
 	bool window_renderer_success = SDL_CreateWindowAndRenderer(
 			window_title,
