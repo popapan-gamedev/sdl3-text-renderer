@@ -13,7 +13,7 @@ const char* app_version		= "v0.n";
 const char* app_identifier	= "com.popapan.dynamic-text-renderer";
 const char* window_title	= "Dynamic Text Renderer";
 
-SDL_InitFlags init_flags				= SDL_INIT_VIDEO;
+SDL_InitFlags init_flags				= SDL_INIT_VIDEO | SDL_INIT_AUDIO;
 SDL_RendererLogicalPresentation mode	= SDL_LOGICAL_PRESENTATION_LETTERBOX;
 
 App app;
@@ -24,15 +24,14 @@ SDL_AppResult SDL_AppInit(
 		int arg_c,
 		char* arg_v[])
 {
-	// Set app metadata before actually starting the application.
-	// (initializing any SDL subsystems)
+	// Set the app's metadata before actually initialising the window & SDL subsystems.
+	// Operating systems will default to fallback properties otherwise.
 	SDL_SetAppMetadata(
 			app_name,
 			app_version,
 			app_identifier
 	);
 
-	bool init_success = false;
 	bool sdl_success = SDL_Init(init_flags);
 	bool window_renderer_success = SDL_CreateWindowAndRenderer(
 			window_title,
@@ -40,13 +39,16 @@ SDL_AppResult SDL_AppInit(
 			SDL_WINDOW_RESIZABLE,
 			&window, &renderer
 	);
+	bool ttf_success = TTF_Init();
 
 	std::string error_message;
 
 	if (!sdl_success)
-		error_message = "Couldn't initialize SDL: %s";
+		error_message = "Couldn't initialise SDL: %s";
 	else if (!window_renderer_success)
 		error_message = "Couldn't create window/renderer: %s";
+	else if (!ttf_success)
+		error_message = "Couldn't initialise TTF: %s";
 
 	if (!error_message.empty()) {
 		SDL_DestroyRenderer(renderer);
@@ -92,6 +94,7 @@ SDL_AppResult SDL_AppEvent(void* app_state, SDL_Event* event)
 void SDL_AppQuit(void* app_state, SDL_AppResult result)
 {
 	app.on_quit();
+	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 }
