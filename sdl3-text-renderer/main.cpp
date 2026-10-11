@@ -17,7 +17,9 @@ SDL_InitFlags init_flags				= SDL_INIT_VIDEO | SDL_INIT_AUDIO;
 SDL_RendererLogicalPresentation mode	= SDL_LOGICAL_PRESENTATION_LETTERBOX;
 
 App app;
+std::vector<SDL_Texture*> glyph_textures;
 
+// Application Life-cycle Methods
 
 SDL_AppResult SDL_AppInit(
 		void** app_state,
@@ -66,6 +68,7 @@ SDL_AppResult SDL_AppInit(
 			mode
 	);
 
+	get_font_textures("aovel-sans-rounded.ttf", &glyph_textures, renderer);
 	app.on_start();
 
 	return SDL_APP_CONTINUE;
@@ -99,4 +102,31 @@ void SDL_AppQuit(void* app_state, SDL_AppResult result)
 	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+}
+
+// <Interface> Methods
+
+void get_font_textures(
+		const char* file_name,
+		std::vector<SDL_Texture*>* textures,
+		SDL_Renderer* renderer)
+{
+	TTF_Font* font = TTF_OpenFont(file_name, 72);
+
+	// For each printable character, create a texture	
+	// that can be rendered to the window.
+	for (int i = 32; i < 127; i++)
+	{
+		SDL_Surface* glyph_surface = TTF_RenderGlyph_Blended(
+				font,
+				char(i),
+				SDL_Color{ 255, 255, 255, 255 }
+		);
+		SDL_Texture* glyph_texture = SDL_CreateTextureFromSurface(
+				renderer,
+				glyph_surface
+		);
+		(*textures).push_back(glyph_texture);
+	}
+	TTF_CloseFont(font);
 }
