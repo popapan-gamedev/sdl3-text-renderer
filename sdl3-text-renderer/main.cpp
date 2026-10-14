@@ -5,8 +5,12 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <random>
+
 #include "global.h"
 #include "app.h"
+#include "text_container.h"
 
 const char* app_name		= "dynamic-text-renderer";
 const char* app_version		= "v0.n";
@@ -16,8 +20,36 @@ const char* window_title	= "Dynamic Text Renderer";
 SDL_InitFlags init_flags				= SDL_INIT_VIDEO | SDL_INIT_AUDIO;
 SDL_RendererLogicalPresentation mode	= SDL_LOGICAL_PRESENTATION_LETTERBOX;
 
-App app;
 std::vector<SDL_Texture*> glyph_textures;
+TextContainer text_container;
+App app;
+
+// <Interface> Methods
+
+void get_font_textures(
+	const char* file_name,
+	std::vector<SDL_Texture*>* textures,
+	SDL_Renderer* renderer)
+{
+	TTF_Font* font = TTF_OpenFont(file_name, 32);
+
+	// For each printable character, create a texture	
+	// that can be rendered to the window.
+	for (int i = 32; i < 127; i++)
+	{
+		SDL_Surface* glyph_surface = TTF_RenderGlyph_Blended(
+			font,
+			char(i),
+			SDL_Color{ 255, 255, 255, 255 }
+		);
+		SDL_Texture* glyph_texture = SDL_CreateTextureFromSurface(
+			renderer,
+			glyph_surface
+		);
+		(*textures).push_back(glyph_texture);
+	}
+	TTF_CloseFont(font);
+}
 
 // Application Life-cycle Methods
 
@@ -26,6 +58,7 @@ SDL_AppResult SDL_AppInit(
 		int arg_c,
 		char* arg_v[])
 {
+	srand(time(0));
 	// Set the app's metadata before actually initialising the window & SDL subsystems.
 	// Operating systems will default to fallback properties otherwise.
 	SDL_SetAppMetadata(
@@ -40,7 +73,7 @@ SDL_AppResult SDL_AppInit(
 	bool window_renderer_success = SDL_CreateWindowAndRenderer(
 			window_title,
 			WINDOW_WIDTH, WINDOW_HEIGHT,
-			SDL_WINDOW_RESIZABLE,
+			SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
 			&window, &renderer
 	);
 	bool ttf_success = TTF_Init();
@@ -71,6 +104,16 @@ SDL_AppResult SDL_AppInit(
 	get_font_textures("aovel-sans-rounded.ttf", &glyph_textures, renderer);
 	app.on_start();
 
+	TTF_Font* font = TTF_OpenFont("aovel-sans-rounded.ttf", 32);
+
+	text_container = TextContainer(
+		100, 345,
+		0,
+		font,
+		"Evil, ominous red text of doom, death and destruction.",
+		&glyph_textures
+	);
+
 	return SDL_APP_CONTINUE;
 }
 
@@ -79,6 +122,7 @@ SDL_AppResult SDL_AppIterate(void* app_state)
 {
 	SDL_RenderClear(renderer);
 	app.on_update();
+	text_container.render_text(renderer);
 	SDL_RenderPresent(renderer);
 	return SDL_APP_CONTINUE;
 }
@@ -102,31 +146,4 @@ void SDL_AppQuit(void* app_state, SDL_AppResult result)
 	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-}
-
-// <Interface> Methods
-
-void get_font_textures(
-		const char* file_name,
-		std::vector<SDL_Texture*>* textures,
-		SDL_Renderer* renderer)
-{
-	TTF_Font* font = TTF_OpenFont(file_name, 72);
-
-	// For each printable character, create a texture	
-	// that can be rendered to the window.
-	for (int i = 32; i < 127; i++)
-	{
-		SDL_Surface* glyph_surface = TTF_RenderGlyph_Blended(
-				font,
-				char(i),
-				SDL_Color{ 255, 255, 255, 255 }
-		);
-		SDL_Texture* glyph_texture = SDL_CreateTextureFromSurface(
-				renderer,
-				glyph_surface
-		);
-		(*textures).push_back(glyph_texture);
-	}
-	TTF_CloseFont(font);
 }

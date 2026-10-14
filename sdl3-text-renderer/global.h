@@ -11,7 +11,6 @@ extern int point_size;
 
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
-extern TTF_Font* font;
 
 #define WINDOW_WIDTH		1280
 #define WINDOW_HEIGHT		720
